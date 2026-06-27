@@ -1,0 +1,22 @@
+{
+  "name": "@intelliops/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./mongo": "./src/database/mongo.js",
+    "./redis": "./src/cache/redis.js",
+    "./kafka": "./src/messaging/kafka.js",
+    "./config": "./src/config/env.js",
+    "./server/createApp": "./src/server/createApp.js",
+    "./server/createApp.js": "./src/server/createApp.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "ioredis": "^5.6.0",
+    "kafkajs": "^2.2.4",
+    "mongoose": "^8.12.1"
+  }
+}

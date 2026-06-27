@@ -1,0 +1,25 @@
+{
+  "name": "intelliops",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-Powered Incident Management & Root Cause Analysis Platform",
+  "workspaces": [
+    "frontend",
+    "packages/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n gateway,user,log,incident,ai,alert,web -c blue,green,yellow,magenta,cyan,red,white \"npm run dev -w @intelliops/api-gateway\" \"npm run dev -w @intelliops/user-service\" \"npm run dev -w @intelliops/log-service\" \"npm run dev -w @intelliops/incident-service\" \"npm run dev -w @intelliops/ai-service\" \"npm run dev -w @intelliops/alert-service\" \"npm run dev -w frontend\"",
+    "dev:web": "concurrently -n gateway,web -c blue,white \"npm run dev -w @intelliops/api-gateway\" \"npm run dev -w frontend\"",
+    "dev:infra": "docker compose up -d",
+    "dev:down": "docker compose down",
+    "build": "npm run build -w frontend",
+    "lint": "npm run lint -w frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
