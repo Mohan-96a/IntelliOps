@@ -1,9 +1,12 @@
-﻿const API_BASE = '/api';
+const API_BASE = '/api';
 
 async function parseError(res) {
   const error = await res.json().catch(() => ({}));
   if (res.status === 502) {
     return 'Backend unavailable. Start Docker Desktop, then run: npm run dev:infra && npm run dev';
+  }
+  if (res.status === 404) {
+    return error.error || 'API route not found. Make sure npm run dev is running (gateway + user-service).';
   }
   return error.error || error.message || res.statusText || 'Request failed';
 }
@@ -16,20 +19,36 @@ async function request(path, options = {}, retry = true) {
     ...options.headers,
   };
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
 
-  if (res.status === 401 && retry && !path.includes('/auth/refresh') && !path.includes('/auth/login')) {
-    const refreshed = await tryRefreshToken();
-    if (refreshed) {
-      return request(path, options, false);
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+
+    if (res.status === 401 && retry && !path.includes('/auth/refresh') && !path.includes('/auth/login') && !path.includes('/auth/signup')) {
+      const refreshed = await tryRefreshToken();
+      if (refreshed) {
+        return request(path, options, false);
+      }
     }
-  }
 
-  if (!res.ok) {
-    throw new Error(await parseError(res));
-  }
+    if (!res.ok) {
+      throw new Error(await parseError(res));
+    }
 
-  return res.json();
+    return res.json();
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error('Request timed out. Check that Docker and all services are running.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 async function tryRefreshToken() {
